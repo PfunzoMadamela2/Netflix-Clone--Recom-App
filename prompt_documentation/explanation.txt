@@ -1,0 +1,11 @@
+Each prompt guided the AI in developing the Netflix-style recommender.
+
+Prompt 1 established the use of Flask + React + Tailwind and the dataset features.
+Prompt 2 requested the full runnable code with all components included.
+
+The outputs were integrated directly into the final system.
+Adjustments included adding trailer support, smooth animations (Framer Motion), and a modular file structure for clarity.
+
+Reflections:
+- The AI effectively generated complete working code.
+- Future improvements: integrate TMDB API for dynamic poster images and live updates.
