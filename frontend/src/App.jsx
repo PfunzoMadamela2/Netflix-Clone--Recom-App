@@ -14,12 +14,21 @@ function App() {
   const [modalType, setModalType] = useState("basic");
   const [showTrailerModal, setShowTrailerModal] = useState(false);
   const [trailerUrl, setTrailerUrl] = useState("");
+  const [showSplash, setShowSplash] = useState(true);
+  const [searchAnimationKey, setSearchAnimationKey] = useState(0);
 
   const RESULTS_PER_PAGE = 12;
   const currentYear = new Date().getFullYear();
 
   useEffect(() => {
+    // Extended splash screen timeout - 4 seconds total
+    const splashTimer = setTimeout(() => {
+      setShowSplash(false);
+    }, 5000);
+
     loadTrendingMovies();
+    
+    return () => clearTimeout(splashTimer);
   }, []);
 
   const loadTrendingMovies = async () => {
@@ -51,7 +60,9 @@ function App() {
         });
         setView("search");
         setCurrentPage(1);
-        setQuery(""); // Clear search input when going to recommendations
+        setQuery("");
+        // Trigger search results animation
+        setSearchAnimationKey(prev => prev + 1);
       } else {
         throw new Error("Failed to load recommendations");
       }
@@ -90,6 +101,8 @@ function App() {
       
       const data = await response.json();
       setResults(data);
+      // Trigger search results animation
+      setSearchAnimationKey(prev => prev + 1);
     } catch (err) {
       console.error("Search error:", err);
       setError(err.message);
@@ -100,7 +113,7 @@ function App() {
 
   const goBackToTrending = () => {
     setView("home");
-    setQuery(""); // Clear search input
+    setQuery("");
     setResults(null);
     setCurrentPage(1);
     window.scrollTo(0, 0);
@@ -172,7 +185,7 @@ function App() {
   const getRatingColor = (rating) => {
     if (rating === "N/A") return "#666";
     const num = parseFloat(rating);
-    if (num >= 8) return "#10b981";
+    if (num >= 8) return "#00ff88";
     if (num >= 7) return "#84cc16";
     if (num >= 6) return "#eab308";
     return "#ef4444";
@@ -202,7 +215,7 @@ function App() {
 
   const getStreamingTypeColor = (type) => {
     switch(type) {
-      case 'stream': return '#10b981';
+      case 'stream': return '#00ff88';
       case 'rent': return '#f59e0b';
       case 'buy': return '#ef4444';
       default: return '#6b7280';
@@ -249,13 +262,23 @@ function App() {
   };
 
   const genreDisplayNames = {
-    "action": "Action 🎬",
-    "comedy": "Comedy 😄", 
-    "drama": "Drama 🎭",
-    "romance": "Romance 💕",
-    "thriller": "Thriller 🔪",
-    "sci-fi": "Sci-Fi 🚀"
+    "action": "Action",
+    "comedy": "Comedy", 
+    "drama": "Drama",
+    "romance": "Romance",
+    "thriller": "Thriller",
+    "sci-fi": "Sci-Fi"
   };
+
+  const SplashScreen = () => (
+    <div className={`splash-screen ${!showSplash ? 'fade-out' : ''}`}>
+      <div className="splash-logo">CineMatch</div>
+      <div className="splash-subtitle">Discover Your Next Favorite Movie</div>
+      <div className="splash-loading-bar">
+        <div className="splash-loading-progress"></div>
+      </div>
+    </div>
+  );
 
   const BasicMovieModal = () => (
     <div className="modal-overlay" onClick={closeModal}>
@@ -307,10 +330,9 @@ function App() {
               </div>
             )}
 
-            {/* Streaming Providers Section */}
             {selectedMovie.StreamingProviders && selectedMovie.StreamingProviders.length > 0 && (
               <div className="streaming-section">
-                <h4>🎯 Where to Watch</h4>
+                <h4>Where to Watch</h4>
                 <div className="streaming-providers">
                   {selectedMovie.StreamingProviders.map((provider, index) => (
                     <button
@@ -338,14 +360,14 @@ function App() {
                   className="trailer-btn"
                   onClick={() => playTrailer(selectedMovie.tmdbID)}
                 >
-                  🎬 Watch Trailer
+                  Watch Trailer
                 </button>
               )}
               <button
                 className="info-btn"
                 onClick={showExtendedInfo}
               >
-                📖 More Info
+                More Info
               </button>
             </div>
           </div>
@@ -426,10 +448,9 @@ function App() {
               </div>
             )}
 
-            {/* Streaming Providers in Extended View */}
             {selectedMovie.StreamingProviders && selectedMovie.StreamingProviders.length > 0 && (
               <div className="streaming-section extended">
-                <h3>🎯 Where to Watch Legally</h3>
+                <h3>Where to Watch Legally</h3>
                 <div className="streaming-providers extended">
                   {selectedMovie.StreamingProviders.map((provider, index) => (
                     <button
@@ -458,7 +479,7 @@ function App() {
                   className="trailer-btn-large"
                   onClick={() => playTrailer(selectedMovie.tmdbID)}
                 >
-                  🎬 Watch Trailer
+                  Watch Trailer
                 </button>
               )}
               <button
@@ -495,6 +516,10 @@ function App() {
     </div>
   );
 
+  if (showSplash) {
+    return <SplashScreen />;
+  }
+
   return (
     <div className="container">
       {showModal && selectedMovie && (
@@ -505,7 +530,7 @@ function App() {
 
       <header className="header">
         <h1 className="logo" onClick={goBackToTrending}>
-          🎬 CineMatch
+          CineMatch
         </h1>
         <p className="tagline">Discover Your Next Favorite Movie</p>
       </header>
@@ -522,7 +547,7 @@ function App() {
               disabled={loading}
             />
             <button type="submit" className="search-btn" disabled={loading}>
-              {loading ? "Searching..." : "🔍 Search"}
+              {loading ? "Searching..." : "Search"}
             </button>
           </div>
         </form>
@@ -543,7 +568,7 @@ function App() {
 
         {view === "home" && (
           <section className="home-section">
-            <h2 className="section-title">🔥 Trending in {currentYear}</h2>
+            <h2 className="section-title">Trending in {currentYear}</h2>
             <p className="section-subtitle">Popular movies by genre</p>
             
             {!trendingData ? (
@@ -616,7 +641,7 @@ function App() {
         )}
 
         {view === "search" && results && (
-          <section className="results-section">
+          <section key={searchAnimationKey} className="results-section">
             <div className="results-header">
               <button 
                 className="back-btn"
@@ -642,11 +667,12 @@ function App() {
             ) : (
               <>
                 <div className="results-grid">
-                  {currentResults.map((movie) => (
+                  {currentResults.map((movie, index) => (
                     <div 
                       key={movie.tmdbID} 
                       className="movie-card search-result"
                       onClick={() => fetchMovieDetails(movie.tmdbID)}
+                      style={{ animationDelay: `${0.4 + (index * 0.1)}s` }}
                     >
                       <div className="poster-container">
                         {movie.Poster ? (
@@ -729,7 +755,7 @@ function App() {
       </main>
 
       <footer className="footer">
-        <small>🎬 CineMatch • Find Your Perfect Movie • {new Date().getFullYear()}</small>
+        <small>CineMatch • Find Your Perfect Movie • {new Date().getFullYear()}</small>
       </footer>
     </div>
   );
