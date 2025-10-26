@@ -1,7 +1,0 @@
-Prompt 1:
-"let us build a netflix clone, we are going to use these following instructions i want the full backend and frontend..."
-Purpose: Define the full scope and architecture.
-
-Prompt 2:
-"provide the code for the whole project dont leave any file on the side"
-Purpose: Request complete runnable project code.
